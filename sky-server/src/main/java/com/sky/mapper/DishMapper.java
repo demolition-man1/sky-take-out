@@ -2,13 +2,17 @@ package com.sky.mapper;
 
 import com.github.pagehelper.Page;
 import com.sky.annotation.AutoFill;
+import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.entity.Dish;
 import com.sky.enumeration.OperationType;
 import com.sky.vo.DishVO;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @Mapper
@@ -29,4 +33,18 @@ public interface DishMapper {
     void insert(Dish dish);
 
     Page<DishVO> pageQuery(DishPageQueryDTO dishPageQueryDTO);
+
+
+@Select("select * from dish where id = #{id}")
+    Dish getById(Long id);
+/**
+     * 根据id删除菜品数据
+     * @param ids
+     */
+
+    void deleteBatch(List<Long> ids);
+@Delete("delete from dish_flavor where dish_id=#{}")
+    void deleteById(Long dishId);
+
+    void update(Dish dish);
 }
