@@ -12,6 +12,8 @@ import com.sky.mapper.SetmealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.service.SetmealService;
+import com.sky.vo.DishItemVO;
+import com.sky.vo.SetmealDishVO;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +30,10 @@ public class SetmealServiceImpl implements SetmealService {
     private SetmealMapper setmealMapper;
     @Autowired
     private SetmealDishMapper setmealDishMapper;
-
+/**
+     * 修改套餐
+     * @param setmealDTO
+     */
     @Override
     @Transactional
     public void update(SetmealDTO setmealDTO) {
@@ -55,7 +60,11 @@ public class SetmealServiceImpl implements SetmealService {
         Page<SetmealVO> page = setmealMapper.pageQuery(setmealPageQueryDTO);
         return new PageResult(page.getTotal(), page.getResult());
     }
-
+/**
+     * 套餐起售停售
+     * @param status
+     * @param id
+     */
     @Override
     public void startOrStop(Integer status, Long id) {
            Setmeal setmeal = Setmeal.builder()
@@ -64,7 +73,10 @@ public class SetmealServiceImpl implements SetmealService {
                 .build();
            setmealMapper.updateStatus(setmeal);
     }
-
+/**
+     * 批量删除套餐
+     * @param ids
+     */
     @Override
     @Transactional
     public void deleteBatch(List<Long> ids) {
@@ -91,7 +103,10 @@ public class SetmealServiceImpl implements SetmealService {
         setmealMapper.deleteBatch(ids);
         setmealDishMapper.deleteBySetmealIdBatch(ids);
     }
-
+    /**
+     * 新增套餐
+     * @param setmealDTO
+     */
     @Override
     public void saveWithFlavor(SetmealDTO setmealDTO) {
         //传统版本
@@ -124,5 +139,36 @@ public class SetmealServiceImpl implements SetmealService {
             // 批量插入套餐-菜品关联数据
             setmealDishMapper.insertBatch(setmealDishes);
         }
+
     }
+///**
+//     * 根据分类ID查询套餐
+//     * @param categoryId
+//     * @return
+//     */
+//    @Override
+//    public List<Setmeal> getSetmealByCategoryId(Integer categoryId) {
+//        List<Setmeal> list = setmealMapper.getSetmealByCategoryId(categoryId);
+//        return list;
+//    }
+/**
+     * 根据套餐ID查询套餐中菜品
+     * @param setmealId
+     * @return
+     */
+    @Override
+    public List<DishItemVO> getDishBySetmealId(Integer setmealId) {
+        return setmealMapper.getDishBySetmealId(setmealId);
+    }
+    /**
+     * 条件查询
+     * @param setmeal
+     * @return
+     */
+    @Override
+    public List<Setmeal> list(Setmeal setmeal) {
+        List<Setmeal> list = setmealMapper.list(setmeal);
+        return list;
+    }
+
 }

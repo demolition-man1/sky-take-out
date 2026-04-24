@@ -22,18 +22,25 @@ import java.util.List;
 public class DishController {
     @Autowired
     private DishService dishService;
-
+/**
+ * 新增菜品
+ */
     public Result save(@RequestBody DishDTO dishDTO) {
         log.info("新增菜品：{}", dishDTO);
         dishService.saveWithFlavor(dishDTO);
         return Result.success("新增菜品成功");
     }
-
+/**
+ * 菜品分页查询
+ */
     @GetMapping("/page")
     public Result<PageResult> page(DishPageQueryDTO dishPageQueryDTO) {
         log.info("分页查询：{}", dishPageQueryDTO);
         return Result.success(dishService.pageQuery(dishPageQueryDTO));
     }
+    /**
+ * 批量删除
+ */
     @DeleteMapping
     @ApiOperation("批量删除")
     public Result delete(@RequestParam List<Long> ids){
@@ -41,6 +48,9 @@ public class DishController {
         dishService.deleteBatch(ids);
         return Result.success("删除成功");
     }
+    /**
+ * 根据id查询
+ */
     @GetMapping("/{id}")
     @ApiOperation("根据id查询")
     public Result<DishVO> getById(@PathVariable Long id){
@@ -48,6 +58,9 @@ public class DishController {
         DishVO dishVO = dishService.getByIdWithFlavor(id);
         return Result.success(dishVO);
     }
+    /**
+ * 修改菜品
+ */
     @PutMapping
     public Result update(@RequestBody DishDTO dishDTO){
         log.info("修改菜品：{}", dishDTO);

@@ -31,9 +31,12 @@ public interface DishMapper {
      */
 @AutoFill(value = OperationType.INSERT)
     void insert(Dish dish);
-
+/**
+     * 菜品查询
+     * @param dishPageQueryDTO
+     * @return
+     */
     Page<DishVO> pageQuery(DishPageQueryDTO dishPageQueryDTO);
-
 
 @Select("select * from dish where id = #{id}")
     Dish getById(Long id);
@@ -43,8 +46,14 @@ public interface DishMapper {
      */
 
     void deleteBatch(List<Long> ids);
-@Delete("delete from dish_flavor where dish_id=#{}")
+@Delete("delete from dish_flavor where dish_id=#{dishId}")
     void deleteById(Long dishId);
 
     void update(Dish dish);
+    /**
+     * 动态条件查询菜品
+     * @param dish
+     * @return
+     */
+    List<Dish> list(Dish dish);
 }
