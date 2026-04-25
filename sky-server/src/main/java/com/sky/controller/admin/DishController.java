@@ -28,6 +28,9 @@ public class DishController {
     public Result save(@RequestBody DishDTO dishDTO) {
         log.info("新增菜品：{}", dishDTO);
         dishService.saveWithFlavor(dishDTO);
+
+//        String key = "dish_" + dishDTO.getCategoryId();
+//        redisTemplate.delete(key);
         return Result.success("新增菜品成功");
     }
 /**
