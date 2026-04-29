@@ -1,7 +1,14 @@
 package com.sky.service;
 
+import com.sky.dto.OrdersCancelDTO;
+import com.sky.dto.OrdersPageQueryDTO;
+import com.sky.dto.OrdersRejectionDTO;
 import com.sky.dto.OrdersSubmitDTO;
+import com.sky.result.PageResult;
+import com.sky.result.Result;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
+import com.sky.vo.OrderVO;
 
 public interface OrderService {
     /**
@@ -10,4 +17,68 @@ public interface OrderService {
      * @return
      */
     OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO);
+/**
+     * 分页查询订单
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    PageResult page(OrdersPageQueryDTO ordersPageQueryDTO);
+
+    /**
+     * 查询订单详情
+     * @param id
+     * @return
+     */
+    OrderVO orderDetail(Long id);
+/**
+     * 用户取消订单
+     * @param id
+     * @return
+     */
+    Result cancel(Long id) throws Exception;
+/**
+     * 用户再来一单
+     * @param id
+     */
+    void repetition(Long id);
+/**
+     * 条件搜索订单
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO);
+/**
+     * 统计订单数据
+     * @return
+     */
+    OrderStatisticsVO statistics();
+
+
+//复用上面的orderDetail方法
+//    OrderVO getOrderDetailById(Long id);
+    /**
+     * 确认订单
+     * @param id
+     */
+    void confirm(Long id);
+/**
+     * 拒单
+     * @param ordersRejectionDTO
+     */
+    void rejection(OrdersRejectionDTO ordersRejectionDTO);
+/**
+     * 取消订单
+      * @param ordersCancelDTO
+     */
+    void cancelByAdmin(OrdersCancelDTO ordersCancelDTO) throws Exception;
+/**
+     * 派送订单
+     * @param id
+     */
+    void delivery(Long id);
+/**
+     * 完成订单
+     * @param id
+     */
+    void complete(Long id);
 }

@@ -13,4 +13,16 @@
         </foreach>
     </insert>
 
+    <select id="getByOrderIds" resultType="com.sky.entity.OrderDetail">
+        select * from order_detail
+        <where>
+            <if test="orderIds != null and orderIds.size() > 0">
+                order_id in
+                <foreach collection="orderIds" item="orderId" open="(" separator="," close=")">
+                    #{orderId}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
 </mapper>

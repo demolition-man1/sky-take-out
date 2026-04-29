@@ -27,7 +27,10 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private SetmealMapper setmealMapper;
     @Autowired
     private ShoppingCartConverter shoppingCartConverter;
-    
+    /**
+     * 添加购物车
+     * @param shoppingCartDTO
+     */
     @Override
     public void addShoppingCart(ShoppingCartDTO shoppingCartDTO) {
         // 判断当前加入到购物车的商品是否在购物车中
@@ -65,7 +68,10 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         shoppingCart.setCreateTime(LocalDateTime.now());
         shoppingCartMapper.insert(shoppingCart);
     }
-
+/**
+ * 查看购物车
+ * @return
+ */
     @Override
     public List<ShoppingCart> showShoppingCart() {
         Long userId = BaseContext.getCurrentId();
@@ -75,7 +81,9 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         List<ShoppingCart> list = shoppingCartMapper.list(shoppingCart);
         return list;
     }
-
+/**
+ * 清空购物车
+ */
     @Override
     public void clean() {
         Long userId = BaseContext.getCurrentId();

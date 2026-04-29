@@ -52,7 +52,11 @@ public class DishServiceImpl implements DishService {
             dishFlavorMapper.insertBatch( flavors);
         }
     }
-
+/**
+     * 菜品查询
+     * @param dishPageQueryDTO
+     * @return
+     */
     @Override
     public PageResult pageQuery(DishPageQueryDTO dishPageQueryDTO) {
         PageHelper.startPage(dishPageQueryDTO.getPage(),dishPageQueryDTO.getPageSize());
