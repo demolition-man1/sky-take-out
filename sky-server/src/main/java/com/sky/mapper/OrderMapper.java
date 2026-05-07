@@ -68,4 +68,8 @@ public interface OrderMapper {
     @Update("update orders set status = #{orderStatus}, pay_status = #{orderPaidStatus}, checkout_time = #{checkOutTime}" +
             " where number = #{orderNumber}")
     void updateStatus(Integer orderStatus, Integer orderPaidStatus, LocalDateTime checkOutTime, String orderNumber);
+
+    List<Map<String, Object>> countByDateRange(LocalDateTime beginTime, LocalDateTime endTime);
+
+    List<Map<String, Object>> countValidByDateRange(LocalDateTime beginTime, LocalDateTime endTime);
 }

@@ -8,4 +8,14 @@
         insert into user(openid,name,phone,sex,avatar,create_time)
         values (#{openid},#{name},#{phone},#{sex},#{avatar},#{createTime})
     </insert>
+
+    <select id="sumTotalUser" resultType="java.util.Map">
+        select t.dateKey, (
+            select count(*) from user where create_time &lt;= str_to_date(t.dateKey, '%Y-%m-%d')
+        ) as total from (
+            select DATE_FORMAT(create_time, '%Y-%m-%d') as dateKey from user
+            where create_time &gt;= #{beginTime} and create_time &lt;= #{endTime}
+            group by dateKey
+        ) t order by t.dateKey
+    </select>
 </mapper>

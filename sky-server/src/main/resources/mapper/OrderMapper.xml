@@ -69,4 +69,21 @@
           and status = #{completed}
         group by DATE_FORMAT(order_time, '%Y-%m-%d')
     </select>
+
+    <select id="countByDateRange" resultType="java.util.HashMap">
+        select DATE_FORMAT(order_time, '%Y-%m-%d') as dateKey, count(*) as count
+        from orders
+        where order_time &gt;= #{beginTime}
+          and order_time &lt;= #{endTime}
+        group by DATE_FORMAT(order_time, '%Y-%m-%d')
+    </select>
+
+    <select id="countValidByDateRange" resultType="java.util.HashMap">
+        select DATE_FORMAT(order_time, '%Y-%m-%d') as dateKey, count(*) as count
+        from orders
+        where order_time &gt;= #{beginTime}
+          and order_time &lt;= #{endTime}
+          and status in (5, 6)
+        group by DATE_FORMAT(order_time, '%Y-%m-%d')
+    </select>
 </mapper>
