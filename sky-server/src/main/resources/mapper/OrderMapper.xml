@@ -46,4 +46,27 @@
             </if>
         </where>
     </select>
+<!--    &gt;表示大于，&lt;表示小于-->
+    <select id="sumByMap" resultType="java.lang.Double">
+        select sum(amount) from orders
+        <where>
+            <if test="begin!= null">
+                and order_time &gt;= #{begin}
+            </if>
+            <if test="end!= null">
+                and order_time &lt;= #{end}
+            </if>
+            <if test="status!=null">
+                and status= #{status}
+            </if>
+        </where>
+    </select>
+    <select id="sumByDateRange" resultType="java.util.HashMap">
+        select DATE_FORMAT(order_time, '%Y-%m-%d') as dateKey, sum(amount) as turnover
+        from orders
+        where order_time &gt;= #{beginTime}
+          and order_time &lt;= #{endTime}
+          and status = #{completed}
+        group by DATE_FORMAT(order_time, '%Y-%m-%d')
+    </select>
 </mapper>

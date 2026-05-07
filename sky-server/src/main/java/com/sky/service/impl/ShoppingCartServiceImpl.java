@@ -33,40 +33,33 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
      */
     @Override
     public void addShoppingCart(ShoppingCartDTO shoppingCartDTO) {
-        // 判断当前加入到购物车的商品是否在购物车中
         ShoppingCart shoppingCart = shoppingCartConverter.toShoppingCart(shoppingCartDTO);
-        shoppingCartMapper.list(shoppingCart);
-        Long UserId = BaseContext.getCurrentId();
-
+        Long userId = BaseContext.getCurrentId();
+        shoppingCart.setUserId(userId);
+        
         List<ShoppingCart> list = shoppingCartMapper.list(shoppingCart);
-        //如果已经存在了，则只需要数量加1
         if (list != null && list.size() > 0) {
             ShoppingCart cart = list.get(0);
             cart.setNumber(cart.getNumber() + 1);
             shoppingCartMapper.updateNumberById(cart);
         }else {
-            //如果不存在，需要插入到购物车中
-
-            //判断本次添加到购物车的是菜单还是套餐
             Long dishId = shoppingCartDTO.getDishId();
             if(dishId != null){
-                //本次添加到购物车的是菜品
                 Dish dish =dishMapper.getById(dishId);
                 shoppingCart.setName(dish.getName());
                 shoppingCart.setImage(dish.getImage());
                 shoppingCart.setAmount(dish.getPrice());
             }else{
-                //本次添加到购物车是套餐
                 Long setmealId = shoppingCartDTO.getSetmealId();
                 Setmeal setmeal = setmealMapper.getById(setmealId);
                 shoppingCart.setName(setmeal.getName());
                 shoppingCart.setImage(setmeal.getImage());
                 shoppingCart.setAmount(setmeal.getPrice());
             }
+            shoppingCart.setNumber(1);
+            shoppingCart.setCreateTime(LocalDateTime.now());
+            shoppingCartMapper.insert(shoppingCart);
         }
-        shoppingCart.setNumber(1);
-        shoppingCart.setCreateTime(LocalDateTime.now());
-        shoppingCartMapper.insert(shoppingCart);
     }
 /**
  * 查看购物车

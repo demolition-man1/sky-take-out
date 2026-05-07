@@ -2,11 +2,13 @@ package com.sky.controller.user;
 
 import com.sky.dto.OrdersDTO;
 import com.sky.dto.OrdersPageQueryDTO;
+import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
 import com.sky.entity.OrderDetail;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
+import com.sky.vo.OrderPaymentVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import io.swagger.annotations.Api;
@@ -58,9 +60,13 @@ public Result<PageResult> page(OrdersPageQueryDTO ordersPageQueryDTO) {
      */
 @GetMapping("/orderDetail/{id}")
 @ApiOperation("订单详情")
-public Result<OrderVO> orderDetail(@PathVariable Long id)  {
+public Result<OrderVO> orderDetail(@PathVariable("id") Long id)  {
+       log.info("订单详情查询，ID：{}", id);
+       if (id == null) {
+           log.error("订单ID为空，请检查前端传参");
+           return Result.error("订单ID不能为空");
+       }
        OrderVO orderVO = orderService.orderDetail(id);
-       log.info("订单详情查询：{}", id);
        return Result.success(orderVO);
     }
     /**
@@ -88,4 +94,26 @@ public Result repetition(@PathVariable Long id) {
     orderService.repetition(id);
     return Result.success();
     }
+
+    @GetMapping("/reminder/{id}")
+    @ApiOperation("订单提醒")
+    public Result reminder(@PathVariable("id") Long id) {
+        orderService.reminder(id);
+        return Result.success();
+    }
+    /**
+     * 订单支付
+     *
+     * @param ordersPaymentDTO
+     * @return
+     */
+    @PutMapping("/payment")
+    @ApiOperation("订单支付")
+    public Result<OrderPaymentVO> payment(@RequestBody OrdersPaymentDTO ordersPaymentDTO) throws Exception {
+        log.info("订单支付：{}", ordersPaymentDTO);
+        OrderPaymentVO orderPaymentVO = orderService.payment(ordersPaymentDTO);
+        log.info("生成预支付交易单：{}", orderPaymentVO);
+        return Result.success(orderPaymentVO);
+    }
+
 }

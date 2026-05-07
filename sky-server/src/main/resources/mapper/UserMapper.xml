@@ -5,7 +5,7 @@
 
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into user(openid,name,phone,address,sex,avatar,create_time)
-        values (#{openid},#{name},#{phone},#{address},#{sex},#{avatar},#{createTime})
+        insert into user(openid,name,phone,sex,avatar,create_time)
+        values (#{openid},#{name},#{phone},#{sex},#{avatar},#{createTime})
     </insert>
 </mapper>

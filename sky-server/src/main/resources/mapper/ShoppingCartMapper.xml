@@ -9,16 +9,21 @@
                 and user_id = #{userId}
             </if>
             <if test="setmealId != null and setmealId != ''" >
-                and setmealId  = #{setmealId }
+                and setmeal_id = #{setmealId}
             </if>
             <if test="dishId != null and dishId != ''" >
-                and dishId = #{dishId}
+                and dish_id = #{dishId}
             </if>
             <if test="dishFlavor != null and dishFlavor != ''" >
-                and dishFlavor = #{dishFlavor}
+                and dish_flavor = #{dishFlavor}
             </if>
         </where>
     </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into shopping_cart (name, image, user_id, dish_id, setmeal_id, dish_flavor, number, amount, create_time)
+        values (#{name}, #{image}, #{userId}, #{dishId}, #{setmealId}, #{dishFlavor}, #{number}, #{amount}, #{createTime})
+    </insert>
 
     <insert id="insertBatch" parameterType="list">
         insert into shopping_cart
