@@ -1,6 +1,7 @@
 package com.sky.mapper;
 
 import com.github.pagehelper.Page;
+import com.sky.dto.GoodsSalesDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Orders;
 import org.apache.ibatis.annotations.Mapper;
@@ -64,12 +65,37 @@ public interface OrderMapper {
      */
     @org.apache.ibatis.annotations.MapKey("dateKey")
     List<Map<String, Object>> sumByDateRange(LocalDateTime beginTime, LocalDateTime endTime, Integer completed);
-
+    /**
+     * 更新订单状态
+     * @param orderStatus
+     * @param orderPaidStatus
+     * @param checkOutTime
+     * @param orderNumber
+     */
     @Update("update orders set status = #{orderStatus}, pay_status = #{orderPaidStatus}, checkout_time = #{checkOutTime}" +
             " where number = #{orderNumber}")
     void updateStatus(Integer orderStatus, Integer orderPaidStatus, LocalDateTime checkOutTime, String orderNumber);
-
+    /**
+     * 统计总订单数量，按照日期分组（批量查询）
+     * @param beginTime 订单开始时间
+     * @param endTime 订单结束时间
+     * @return key是日期字符串，value是订单数量
+     */
+    @org.apache.ibatis.annotations.MapKey("dateKey")
     List<Map<String, Object>> countByDateRange(LocalDateTime beginTime, LocalDateTime endTime);
-
+    /**
+     * 统计有效订单数量，按照日期分组（批量查询）
+     * @param beginTime 订单开始时间
+     * @param endTime 订单结束时间
+     * @return key是日期字符串，value是有效订单数量
+     */
+    @org.apache.ibatis.annotations.MapKey("dateKey")
     List<Map<String, Object>> countValidByDateRange(LocalDateTime beginTime, LocalDateTime endTime);
+    /**
+     * 查询销量排名top10
+     * @param begin
+     * @param end
+     * @return
+     */
+    List<GoodsSalesDTO> getSalesTop10(LocalDateTime begin, LocalDateTime end);
 }
