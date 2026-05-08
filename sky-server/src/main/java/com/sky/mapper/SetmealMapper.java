@@ -86,4 +86,11 @@ public interface SetmealMapper {
      */
     @Select("select * from setmeal where id = #{id}")
     Setmeal getById(Long id);
+
+    /**
+     * 统计套餐数量
+     * @param status 套餐状态
+     * @return 套餐数量
+     */
+    Integer countByStatus(Integer status);
 }

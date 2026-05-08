@@ -47,6 +47,17 @@ public interface OrderMapper {
     List<Orders> getByStatusAndOrderTime(Integer status, LocalDateTime orderTime);
 
     /**
+     * 统计订单数量
+     * @param begin 开始时间
+     * @param end 结束时间
+     * @param status 订单状态
+     * @return 订单数量
+     */
+    Integer countByMap(@Param("begin") LocalDateTime begin,
+                       @Param("end") LocalDateTime end,
+                       @Param("status") Integer status);
+
+    /**
      * 统计订单金额
      * @param begin 开始时间
      * @param end 结束时间
