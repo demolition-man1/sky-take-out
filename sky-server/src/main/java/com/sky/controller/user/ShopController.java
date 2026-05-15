@@ -28,4 +28,19 @@ public class ShopController {
         log.info("获取店铺营业状态:{}", status==1?"营业中":"打烊中");
         return Result.success(status);
     }
+
+    /**
+     * 获取店铺电话
+     * @return
+     */
+    @GetMapping("phone")
+    @ApiOperation("获取店铺电话")
+    public Result<String> getPhone() {
+        String phone = (String) redisTemplate.opsForValue().get("SHOP_PHONE");
+        if (phone == null) {
+            phone = "400-123-4567"; // 默认电话
+        }
+        log.info("获取店铺电话:{}", phone);
+        return Result.success(phone);
+    }
 }

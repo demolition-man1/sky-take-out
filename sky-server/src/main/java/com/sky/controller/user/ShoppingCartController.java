@@ -47,4 +47,30 @@ public class ShoppingCartController {
         shoppingCartService.clean();
         return Result.success();
     }
+
+    /**
+     * 修改购物车数量
+     * @param shoppingCartDTO
+     * @return
+     */
+    @PutMapping
+    @ApiOperation("修改购物车数量")
+    public Result update(@RequestBody ShoppingCartDTO shoppingCartDTO) {
+        log.info("修改购物车数量，商品信息为：{}", shoppingCartDTO);
+        shoppingCartService.updateShoppingCart(shoppingCartDTO);
+        return Result.success();
+    }
+
+    /**
+     * 减菜
+     * @param shoppingCartDTO
+     * @return
+     */
+    @PostMapping("/sub")
+    @ApiOperation("减菜")
+    public Result sub(@RequestBody ShoppingCartDTO shoppingCartDTO) {
+        log.info("减菜，商品信息为：{}", shoppingCartDTO);
+        shoppingCartService.subShoppingCart(shoppingCartDTO);
+        return Result.success();
+    }
 }

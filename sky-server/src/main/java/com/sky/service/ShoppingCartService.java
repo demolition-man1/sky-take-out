@@ -15,4 +15,16 @@ public interface ShoppingCartService {
     List<ShoppingCart> showShoppingCart();
 
     void clean();
+
+    /**
+     * 修改购物车数量
+     * @param shoppingCartDTO
+     */
+    void updateShoppingCart(ShoppingCartDTO shoppingCartDTO);
+
+    /**
+     * 减菜
+     * @param shoppingCartDTO
+     */
+    void subShoppingCart(ShoppingCartDTO shoppingCartDTO);
 }
