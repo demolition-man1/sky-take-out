@@ -29,4 +29,20 @@ public interface OrderDetailMapper {
     @Select("select * from order_detail where order_id = #{orderId}")
     List<OrderDetail> getByOrderId(Long orderId);
 
+    /**
+     * 统计菜品销量
+     * @param dishId 菜品ID
+     * @return 销量
+     */
+    @Select("SELECT COALESCE(SUM(number), 0) FROM order_detail WHERE dish_id = #{dishId}")
+    Integer countDishSales(Long dishId);
+
+    /**
+     * 统计套餐销量
+     * @param setmealId 套餐ID
+     * @return 销量
+     */
+    @Select("SELECT COALESCE(SUM(number), 0) FROM order_detail WHERE setmeal_id = #{setmealId}")
+    Integer countSetmealSales(Long setmealId);
+
 }

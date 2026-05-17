@@ -2,6 +2,8 @@ package com.sky.controller.user;
 
 import com.sky.constant.StatusConstant;
 import com.sky.entity.Dish;
+import com.sky.entity.DishFlavor;
+import com.sky.mapper.DishFlavorMapper;
 import com.sky.result.Result;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
@@ -11,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
@@ -24,6 +27,8 @@ public class DishController {
     private DishService dishService;
     @Autowired
     private RedisTemplate redisTemplate;
+    @Autowired
+    private DishFlavorMapper dishFlavorMapper;
     /**
      * 根据分类id查询菜品
      *
@@ -47,6 +52,19 @@ public class DishController {
         list = dishService.listWithFlavor(dish);
         redisTemplate.opsForValue().set(key,list);
         return Result.success(list);
+    }
+
+    /**
+     * 根据菜品id查询菜品规格
+     * @param dishId
+     * @return
+     */
+    @GetMapping("/flavor/{dishId}")
+    @ApiOperation("根据菜品id查询菜品规格")
+    public Result<List<DishFlavor>> getFlavorByDishId(@PathVariable Long dishId) {
+        log.info("根据菜品id查询菜品规格，菜品ID：{}", dishId);
+        List<DishFlavor> flavors = dishFlavorMapper.getByDishId(dishId);
+        return Result.success(flavors);
     }
 
 }
