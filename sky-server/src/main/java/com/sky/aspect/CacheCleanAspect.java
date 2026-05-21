@@ -25,14 +25,37 @@ public class CacheCleanAspect {
     private RedisTemplate redisTemplate;
 
     @AfterReturning("execution(* com.sky.controller.admin.DishController.save(..)) || " +
-            "execution(* com.sky.controller.admin.DishController.update(..))")
+            "execution(* com.sky.controller.admin.DishController.update(..)) || " +
+            "execution(* com.sky.controller.admin.DishController.startOrStop(..))")
     public void cleanDishCache(JoinPoint joinPoint) {
-        Object arg = joinPoint.getArgs()[0];
         try {
-            Long categoryId = (Long) arg.getClass().getMethod("getCategoryId").invoke(arg);
-            String key = "dish_" + categoryId;
-            redisTemplate.delete(key);
-            log.info("清理菜品缓存: {}", key);
+            Long categoryId = null;
+            Long dishId = null;
+            
+            // 判断是哪种方法调用
+            String methodName = joinPoint.getSignature().getName();
+            if ("startOrStop".equals(methodName)) {
+                // startOrStop(Long id) - id是第二个参数
+                Object[] args = joinPoint.getArgs();
+                if (args.length >= 2 && args[1] instanceof Long) {
+                    dishId = (Long) args[1];
+                    // 查询菜品获取分类ID
+                    Dish dish = dishMapper.getById(dishId);
+                    if (dish != null) {
+                        categoryId = dish.getCategoryId();
+                    }
+                }
+            } else {
+                // save或update方法，第一个参数是DTO对象
+                Object arg = joinPoint.getArgs()[0];
+                categoryId = (Long) arg.getClass().getMethod("getCategoryId").invoke(arg);
+            }
+            
+            if (categoryId != null) {
+                String key = "dish_" + categoryId;
+                redisTemplate.delete(key);
+                log.info("清理菜品缓存: {}", key);
+            }
         } catch (Exception e) {
             log.error("清理菜品缓存失败", e);
         }

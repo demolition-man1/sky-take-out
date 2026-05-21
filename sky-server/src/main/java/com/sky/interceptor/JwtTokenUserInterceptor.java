@@ -33,6 +33,12 @@ public class JwtTokenUserInterceptor implements HandlerInterceptor {
         
         log.info("获取到的token: {}", token);
 
+        // 如果没有token，允许通过（用于AI客服等不需要登录的接口）
+        if (token == null || token.isEmpty()) {
+            log.info("未携带token，跳过认证");
+            return true;
+        }
+
         try {
             log.info("jwt校验:{}", token);
             Claims claims = JwtUtil.parseJWT(jwtProperties.getUserSecretKey(), token);

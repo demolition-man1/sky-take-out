@@ -1,13 +1,18 @@
 package com.sky.service.impl;
 
-import com.alibaba.fastjson.JSON;
+import com.github.pagehelper.Page;
 import com.sky.context.BaseContext;
 import com.sky.dto.ChatMessageDTO;
+import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.entity.Dish;
+import com.sky.entity.Orders;
 import com.sky.entity.Setmeal;
+import com.sky.entity.ShoppingCart;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.OrderDetailMapper;
+import com.sky.mapper.OrderMapper;
 import com.sky.mapper.SetmealMapper;
+import com.sky.mapper.ShoppingCartMapper;
 import com.sky.service.ChatService;
 import com.sky.utils.DeepSeekUtil;
 import com.sky.vo.ChatMessageVO;
@@ -16,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -36,6 +42,12 @@ public class ChatServiceImpl implements ChatService {
 
     @Autowired
     private OrderDetailMapper orderDetailMapper;
+
+    @Autowired
+    private OrderMapper orderMapper;
+
+    @Autowired
+    private ShoppingCartMapper shoppingCartMapper;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -67,8 +79,17 @@ public class ChatServiceImpl implements ChatService {
         userMsg.put("content", userMessage);
         messageHistory.add(userMsg);
 
-        // 调用DeepSeek API
-        String aiReply = deepSeekUtil.chat(messageHistory);
+        // 检查是否为特殊意图（订单查询、加菜减菜）
+        String specialResponse = handleSpecialIntent(userMessage);
+        String aiReply;
+        
+        if (specialResponse != null) {
+            // 特殊意图已处理，直接使用返回的回复
+            aiReply = specialResponse;
+        } else {
+            // 调用DeepSeek API
+            aiReply = deepSeekUtil.chat(messageHistory);
+        }
 
         // 添加AI回复到历史
         Map<String, String> aiMsg = new HashMap<>();
@@ -85,6 +106,215 @@ public class ChatServiceImpl implements ChatService {
         log.info("AI回复: {}", aiReply);
 
         return response;
+    }
+
+    /**
+     * 处理特殊意图（订单查询、加菜减菜）
+     * @return 如果处理了特殊意图则返回回复内容，否则返回null
+     */
+    private String handleSpecialIntent(String userMessage) {
+        // 1. 订单状态查询
+        if (userMessage.contains("订单") && (userMessage.contains("查询") || userMessage.contains("状态") || userMessage.contains("进度"))) {
+            return handleOrderQuery(userMessage);
+        }
+        
+        // 2. 智能加菜
+        if ((userMessage.contains("加") || userMessage.contains("添加")) && (userMessage.contains("菜") || userMessage.contains("份") || userMessage.contains("个"))) {
+            return handleAddDish(userMessage);
+        }
+        
+        // 3. 智能减菜
+        if ((userMessage.contains("减") || userMessage.contains("减少") || userMessage.contains("去掉")) && (userMessage.contains("菜") || userMessage.contains("份") || userMessage.contains("个"))) {
+            return handleSubDish(userMessage);
+        }
+        
+        return null;
+    }
+
+    /**
+     * 处理订单查询
+     */
+    private String handleOrderQuery(String userMessage) {
+        try {
+            Long userId = BaseContext.getCurrentId();
+            if (userId == null) {
+                return "请先登录后再查询订单哦～";
+            }
+
+            // 提取订单号（假设用户输入中包含数字）
+            Pattern pattern = Pattern.compile("\\d+");
+            Matcher matcher = pattern.matcher(userMessage);
+            
+            Orders order = null;
+            
+            // 尝试从用户消息中提取订单号并查询
+            while (matcher.find()) {
+                String num = matcher.group();
+                // 尝试作为订单号查询
+                order = orderMapper.getByNumber(num);
+                if (order != null && order.getUserId().equals(userId)) {
+                    break;
+                }
+                order = null;
+            }
+            
+            // 如果没有找到指定订单，查询最近的订单
+            if (order == null) {
+                OrdersPageQueryDTO queryDTO = new OrdersPageQueryDTO();
+                queryDTO.setUserId(userId);
+                queryDTO.setPage(1);
+                queryDTO.setPageSize(1);
+                Page<Orders> page = orderMapper.pageQuery(queryDTO);
+                if (page.getResult() != null && !page.getResult().isEmpty()) {
+                    order = page.getResult().get(0);
+                }
+            }
+            
+            if (order != null) {
+                String statusText = getOrderStatusText(order.getStatus());
+                String estimatedTime = "";
+                if (order.getEstimatedDeliveryTime() != null) {
+                    String timeStr = order.getEstimatedDeliveryTime().toString();
+                    if (timeStr.length() >= 16) {
+                        estimatedTime = "，预计" + timeStr.substring(11, 16) + "送达";
+                    }
+                }
+                
+                return String.format("您的订单（订单号：%s）当前状态为：%s%s。订单金额：%.2f元。",
+                        order.getNumber(),
+                        statusText,
+                        estimatedTime,
+                        order.getAmount());
+            }
+            
+            return "抱歉，我没有找到您的订单信息。请提供正确的订单号，或者您可以说\"查询最近订单\"。";
+            
+        } catch (Exception e) {
+            log.error("订单查询异常", e);
+            return "抱歉，查询订单时出现异常，请稍后重试。";
+        }
+    }
+
+    /**
+     * 获取订单状态文本
+     */
+    private String getOrderStatusText(Integer status) {
+        switch (status) {
+            case 1: return "待付款";
+            case 2: return "待接单";
+            case 3: return "已接单";
+            case 4: return "配送中";
+            case 5: return "已完成";
+            case 6: return "已取消";
+            default: return "未知状态";
+        }
+    }
+
+    /**
+     * 处理加菜
+     */
+    private String handleAddDish(String userMessage) {
+        try {
+            Long userId = BaseContext.getCurrentId();
+            if (userId == null) {
+                return "请先登录后再加菜哦～";
+            }
+
+            // 查找用户消息中提到的菜品名称
+            List<Dish> dishes = dishMapper.list(Dish.builder().status(1).build());
+            Dish matchedDish = null;
+            
+            for (Dish dish : dishes) {
+                if (userMessage.contains(dish.getName())) {
+                    matchedDish = dish;
+                    break;
+                }
+            }
+            
+            if (matchedDish != null) {
+                // 构建购物车对象
+                ShoppingCart shoppingCart = ShoppingCart.builder()
+                        .userId(userId)
+                        .dishId(matchedDish.getId())
+                        .name(matchedDish.getName())
+                        .image(matchedDish.getImage())
+                        .amount(matchedDish.getPrice())
+                        .number(1)
+                        .createTime(LocalDateTime.now())
+                        .build();
+                
+                // 检查是否已存在
+                List<ShoppingCart> list = shoppingCartMapper.list(shoppingCart);
+                if (list != null && !list.isEmpty()) {
+                    // 已存在，数量+1
+                    ShoppingCart cart = list.get(0);
+                    cart.setNumber(cart.getNumber() + 1);
+                    shoppingCartMapper.updateNumberById(cart);
+                    return String.format("好的！已为您增加一份%s，现在购物车中有%d份。", matchedDish.getName(), cart.getNumber());
+                } else {
+                    // 不存在，新增
+                    shoppingCartMapper.insert(shoppingCart);
+                    return String.format("好的！已为您添加%s到购物车，价格%.2f元。", matchedDish.getName(), matchedDish.getPrice());
+                }
+            }
+            
+            return "抱歉，我没有找到您说的菜品。您可以告诉我具体的菜品名称，比如\"帮我加一份宫保鸡丁\"。";
+            
+        } catch (Exception e) {
+            log.error("加菜异常", e);
+            return "抱歉，加菜时出现异常，请稍后重试。";
+        }
+    }
+
+    /**
+     * 处理减菜
+     */
+    private String handleSubDish(String userMessage) {
+        try {
+            Long userId = BaseContext.getCurrentId();
+            if (userId == null) {
+                return "请先登录后再减菜哦～";
+            }
+
+            // 查找用户消息中提到的菜品名称
+            List<Dish> dishes = dishMapper.list(Dish.builder().status(1).build());
+            Dish matchedDish = null;
+            
+            for (Dish dish : dishes) {
+                if (userMessage.contains(dish.getName())) {
+                    matchedDish = dish;
+                    break;
+                }
+            }
+            
+            if (matchedDish != null) {
+                ShoppingCart shoppingCart = ShoppingCart.builder()
+                        .userId(userId)
+                        .dishId(matchedDish.getId())
+                        .build();
+                
+                List<ShoppingCart> list = shoppingCartMapper.list(shoppingCart);
+                if (list != null && !list.isEmpty()) {
+                    ShoppingCart cart = list.get(0);
+                    if (cart.getNumber() == 1) {
+                        shoppingCartMapper.deleteById(cart.getId());
+                        return String.format("好的！已从购物车中移除%s。", matchedDish.getName());
+                    } else {
+                        cart.setNumber(cart.getNumber() - 1);
+                        shoppingCartMapper.updateNumberById(cart);
+                        return String.format("好的！已减少一份%s，现在购物车中还有%d份。", matchedDish.getName(), cart.getNumber());
+                    }
+                } else {
+                    return String.format("抱歉，您的购物车中没有%s。", matchedDish.getName());
+                }
+            }
+            
+            return "抱歉，我没有找到您说的菜品。您可以告诉我具体的菜品名称，比如\"帮我减一份宫保鸡丁\"。";
+            
+        } catch (Exception e) {
+            log.error("减菜异常", e);
+            return "抱歉，减菜时出现异常，请稍后重试。";
+        }
     }
 
     /**

@@ -45,7 +45,7 @@
             <if test="updateUser!=null">update_user = #{updateUser},</if>
             <if test="categoryId!=null">category_id = #{categoryId},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
-        </set>>
+        </set>
             where id = #{id}
     </update>
     <delete id="deleteBatch">
